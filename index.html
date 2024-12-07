@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Календарь расходов</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: #f1f3f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            height: 90vh;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+        }
+        .header-title {
+            color: #333;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .content {
+            display: flex;
+            justify-content: space-between;
+            flex-grow: 1;
+            gap: 20px;
+        }
+        .calendar, .inputs {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .month-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .month-name {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #007bff;
+            text-align: center;
+            flex: 1;
+        }
+        .day {
+            width: 100%;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background 0.3s;
+            font-size: 20px;
+            background: #f9f9f9;
+            margin: 2px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .day.selected {
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .day.today {
+            background: #ffcc00;
+            color: black;
+            font-weight: bold;
+        }
+        .inputs {
+            min-width: 300px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 16px;
+            transition: border 0.2s;
+        }
+        .input-group input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        .calculate-button {
+            padding: 12px;
+            background: #6a00ff;
+            border-radius: 5px;
+            text-align: center;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .calculate-button:hover {
+            background: #5a00cc;
+            transform: translateY(-2px);
+        }
+        .summary {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+            text-align: center;
+        }
+        .budget-status {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">Календарь расходов</div>
+        <div class="content">
+            <div class="calendar">
+                <div class="month-selector">
+                    <button id="prevMonth">←</button>
+                    <div class="month-name" id="monthName"></div>
+                    <select id="monthSelect"></select>
+                    <input type="number" id="yearInput" value="2023" min="1900" max="2100" style="width: 70px;"/>
+                    <button id="nextMonth">→</button>
+                </div>
+                <div id="daysGrid" class="days"></div>
+            </div>
+            <div class="inputs">
+                <div class="input-group">
+                    <label>Исходная сумма</label>
+                    <input placeholder="Введите сумму" id="initialAmount" type="number">
+                </div>
+                <div class="input-group">
+                    <label>Сумма трат</label>
+                    <input placeholder="Введите сумму" id="spendingAmount" type="number">
+                </div>
+                <div class="input-group">
+                    <label>Сумма трат за день</label>
+                    <input placeholder="Введите сумму трат за день" id="dailySpendingAmount" type="number">
+                </div>
+                <div class="calculate-button" id="calculateButton">Рассчитать</div>
+                <div class="summary">
+                    <div id="totalAmount" style="color: black; font-size: 24px; font-weight: 700;">0 рублей</div>
+                    <div style="color: #5e5e5e; font-size: 16px;">Сумма на день:</div>
+                    <div id="dailyAmount" style="color: black; font-size: 24px; font-weight: 700;">0 рублей</div>
+                    <div id="budgetStatus" class="budget-status">Пожалуйста, рассчитайте бюджет</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const monthSelect = document.getElementById('monthSelect');
+        const yearInput = document.getElementById('yearInput');
+        const daysGrid = document.getElementById('daysGrid');
+        const prevMonth = document.getElementById('prevMonth');
+        const nextMonth = document.getElementById('nextMonth');
+        const calculateButton = document.getElementById('calculateButton');
+        const totalAmount = document.getElementById('totalAmount');
+        const dailyAmount = document.getElementById('dailyAmount');
+        const budgetStatus = document.getElementById('budgetStatus');
+        const dailySpendingAmount = document.getElementById('dailySpendingAmount');
+        const monthName = document.getElementById('monthName');
+        
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedDay = null;
+        let dailyExpenses = {};
+
+        function populateMonthSelect() {
+            monthSelect.innerHTML = monthNames.map((month, index) => `<option value="${index}">${month}</option>`).join('');
+            monthSelect.value = currentMonth;
+            monthName.textContent = monthNames[currentMonth] + " " + currentYear;
+        }
+
+        function renderCalendar() {
+            daysGrid.innerHTML = '';
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                daysGrid.innerHTML += '<div class="day"></div>';
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const today = new Date();
+                const isToday = (today.getDate() === day && today.getMonth() === currentMonth && today.getFullYear() === currentYear);
+                const expense = dailyExpenses[day] || 0;
+                daysGrid.innerHTML += `<div class="day ${isToday ? 'today' : ''}" onclick="selectDay(this, ${day})">${day} <span style="font-size: 10px;">(${expense} руб.)</span></div>`;
+            }
+        }
+
+        function selectDay(dayElement, day) {
+            document.querySelectorAll('.day.selected').forEach(el => el.classList.remove('selected'));
+            dayElement.classList.add('selected');
+            selectedDay = day;
+            dailySpendingAmount.value = dailyExpenses[selectedDay] || '';
+        }
+
+        function updateCalendar() {
+            monthSelect.value = currentMonth;
+            yearInput.value = currentYear;
+            monthName.textContent = monthNames[currentMonth] + " " + currentYear;
+            renderCalendar();
+        }
+
+        monthSelect.addEventListener('change', () => {
+            currentMonth = parseInt(monthSelect.value);
+            dailyExpenses = {};
+            updateCalendar();
+        });
+
+        yearInput.addEventListener('change', () => {
+            currentYear = parseInt(yearInput.value);
+            dailyExpenses = {};
+            updateCalendar();
+        });
+
+        prevMonth.addEventListener('click', () => {
+            if (currentMonth === 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else {
+                currentMonth--;
+            }
+            updateCalendar();
+        });
+
+        nextMonth.addEventListener('click', () => {
+            if (currentMonth === 11) {
+                currentMonth = 0;
+                currentYear++;
+            } else {
+                currentMonth++;
+            }
+            updateCalendar();
+        });
+
+        calculateButton.addEventListener('click', () => {
+            const initialAmount = parseFloat(document.getElementById('initialAmount').value) || 0;
+            const spendingAmount = parseFloat(document.getElementById('spendingAmount').value) || 0;
+
+            const total = initialAmount - spendingAmount; 
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daily = total / daysInMonth;
+
+            totalAmount.textContent = `${total} рублей`;
+            dailyAmount.textContent = `${daily.toFixed(2)} рублей`;
+
+            const dailySpent = parseFloat(dailySpendingAmount.value) || 0;
+            budgetStatus.textContent = dailySpent > daily ? "Вы превысили бюджет!" : "Вы уложились в бюджет";
+        });
+
+        dailySpendingAmount.addEventListener('change', () => {
+            const amount = parseFloat(dailySpendingAmount.value) || 0;
+            dailyExpenses[selectedDay] = amount;
+            renderCalendar();
+        });
+
+        populateMonthSelect();
+        renderCalendar();
+    </script>
+</body>
+</html>
